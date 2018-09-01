@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+ <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@0.11.7"></script>
+ <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/posenet@0.1.2"></script>
+<title>Display Webcam Stream</title>
+
+<style>
+#container {
+    margin: 0px auto;
+    width: 320px;
+    height: 240px;
+    border: 10px #333 solid;
+}
+#videoElement {
+    width: 320px;
+    height: 240px;
+    background-color: #666;
+}
+#canvas {
+    width: 70%;
+    height: 70%;
+    background-color: #CCC;
+    text-align: center;
+}
+</style>
+
+</head>
+
+<body>
+
+<div id="container" style="display:none" >
+  <video autoplay id="trainingVideo" src="10.mp4" controls="false"></video>
+    <video autoplay id="videoElement" ></video>
+</div>
+<div style="text-align: center;">
+	<canvas id="canvas" width="500" height="375"></canvas>
+</div>
+
+<script type="text/javascript" src="index.js"></script>
+
+</body>
+</html>

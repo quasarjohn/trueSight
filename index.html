@@ -1,46 +1,89 @@
 <!DOCTYPE html>
 <html>
-<head>
-<meta charset="utf-8">
- <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@0.11.7"></script>
- <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/posenet@0.1.2"></script>
-<title>Display Webcam Stream</title>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="assets/css/bootstrap.min.css">
+		<title>TrueSight | Live</title>
 
-<style>
-#container {
-    margin: 0px auto;
-    width: 320px;
-    height: 240px;
-    border: 10px #333 solid;
-}
-#videoElement {
-    width: 320px;
-    height: 240px;
-    background-color: #666;
-}
-#canvas {
-    width: 70%;
-    height: 70%;
-    background-color: #CCC;
-    text-align: center;
-}
-</style>
+		<style>
+		#container {
+		    margin: 0px auto;
+		    width: 320px;
+		    height: 240px;
+		    border: 10px #333 solid;
+		}
+		#videoElement {
+		    width: 320px;
+		    height: 240px;
+		    background-color: #666;
+		}
+		#canvas {
+		    width: 100%;
+		    height: 100%;
+		    background-color: #CCC;
+		    text-align: center;
+		}
+		.card{
+			padding:20px;
+		}
 
-</head>
+		.padtop{
+			padding-top: 20px;
+		}
+		.martop{
+			margin-top: 20px;
+		}
+		</style>
+	</head>
 
-<body>
+	<body>
+		<nav class="navbar navbar-expand-sm bg-dark navbar-dark">
+      <a class="navbar-brand" href="#">TrueSight</a>
+      <ul class="navbar-nav">
+		    <li class="nav-item">
+		      <a class="nav-link" href="https://truesightofficial.firebaseapp.com/">Training & Testing</a>
+		    </li>
+		    <li class="nav-item">
+		      <a class="nav-link" href="https://truesightofficial.firebaseapp.com/">Live</a>
+		    </li>
+		  </ul>
+    </nav>
 
-  <img id="img"/>
+	  <!--<img id="img"/>-->
+		<div id="container" style="display:none" >
+		  <video  id="trainingVideo" autoplay src="10.mp4" controls="false"></video>
+		    <video autoplay id="videoElement" ></video>
+		</div>
+		<div class="container">
+			<div class="row">
+				<div class="col-md-8">
+					<div class="card bg-light martop" style="height:500px;">
+						<div style="text-align: center;" >
+							<!-- <canvas id="canvas" width="500" height="375"></canvas> -->
+						</div>
+					</div>
+				</div>
+				<div class="col-md-4">
+					<div class="card bg-light martop">
+						<img src="assets/images/neu_logo.png" class="img-fluid">
+					</div>
 
-<div id="container" style="display:none" >
-  <video  id="trainingVideo" autoplay src="10.mp4" controls="false"></video>
-    <video autoplay id="videoElement" ></video>
-</div>
-<div style="text-align: center;">
-	<canvas id="canvas" width="500" height="375"></canvas>
-</div>
+					<div class="card bg-light martop">
+						<h3>Headcount:</h3>
+					</div>
+					<button type="button" class="btn btn-success btn-block martop">Start live</button>
+				</div>
+			</div>
+		</div>
 
-<script type="text/javascript" src="index.js"></script>
+		
 
-</body>
+		<script type="text/javascript" src="index.js"></script>
+		<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@0.11.7"></script>
+		<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/posenet@0.1.2"></script>
+	  <script src="assets/js/jquery-3.3.1.min.js"></script>
+	  <script src="assets/js/popper.min.js"></script>
+	  <script src="assets/js/bootstrap.min.js"></script>
+	</body>
 </html>

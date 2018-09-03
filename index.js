@@ -5,12 +5,14 @@ var ready = false;
 var v,canvas,context,w,h;
 
 //these variables are for training purposes only. not required for the final system to run
-var getVideoFromCam = false;
+var getVideoFromCam = true;
 var link = document.createElement('a');
 link.innerHTML = 'download image';
 var croppedImage;
 
 var fileinput = document.getElementById('fileinput');
+var modelReady = false;
+var model;
 
 // check for getUserMedia support
 navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia || navigator.msGetUserMedia || navigator.oGetUserMedia;
@@ -40,16 +42,16 @@ document.addEventListener('DOMContentLoaded', function(){
 
     let saveImage = function(ev) {
 
-      if(croppedImage != null) {
-        let newCanvas = document.createElement('canvas');
-        let newContext = newCanvas.getContext('2d');
-        newCanvas.width = croppedImage.width;
-        newCanvas.height = croppedImage.height;
-        newContext.putImageData(croppedImage, 0, 0);
-
-        link.href = newCanvas.toDataURL();
-        link.download = "training.png";
-      }
+      // if(croppedImage != null) {
+      //   let newCanvas = document.createElement('canvas');
+      //   let newContext = newCanvas.getContext('2d');
+      //   newCanvas.width = croppedImage.width;
+      //   newCanvas.height = croppedImage.height;
+      //   newContext.putImageData(croppedImage, 0, 0);
+      //
+      //   link.href = newCanvas.toDataURL();
+      //   link.download = "training.png";
+      // }
 
       croppedImage = null;
     };
@@ -96,23 +98,6 @@ document.addEventListener('DOMContentLoaded', function(){
           let imageData = context.getImageData(0, 0, canvas.width, canvas.height);
           let data = imageData.data;
 
-          // for (var i = 0; i < data.length; i += 4) {
-          //
-          //   let d0 = data[i] / data[i + 1];
-          //   let d1 = data[i] / data[i + 2];
-          //   let d2 = data[i + 1] / data[i + 2];
-          //
-          //   let t0 = d0 < 1.2 && d0 > 0.8;
-          //   let t1 = d1 < 1.2 && d1 > 0.8;
-          //   let t2 = d2 < 1.2 && d2 > 0.8;
-          //
-          //   if(t0 && t1 && t2) {
-          //     data[i]     = 255;     // red
-          //     data[i + 1] = 255; // green
-          //     data[i + 2] = 255; // blue
-          //   }
-          // }
-
           context.putImageData(imageData, 0, 0);
 
           for(let i = 0; i < poses.length; i++) {
@@ -129,19 +114,48 @@ document.addEventListener('DOMContentLoaded', function(){
 
             let noseY = pose.keypoints[0].position.y;
 
-            console.log(noseY);
-
-            drawLine(leftElbowX, noseY, rightElbowX, noseY);
-            drawLine(rightElbowX, rightHipY, rightElbowX, noseY);
-            drawLine(leftElbowX, leftHipY, rightElbowX, rightHipY);
-            drawLine(leftElbowX, leftHipY, leftElbowX, noseY);
-
             let widthX = Math.sqrt(Math.pow(leftElbowX - rightElbowX, 2));
             let widthY = Math.sqrt(Math.pow(noseY - leftHipY, 2));
 
             if(widthX > 50) {
-              croppedImage = context.getImageData(rightElbowX, noseY, widthX, widthY);
-              link.click();
+              if(modelReady) {
+
+                croppedImage = context.getImageData(rightElbowX, noseY, widthX, widthY);
+                let c = document.createElement('canvas');
+                c.width = 224;
+                c.height = 224;
+                let nc = c.getContext('2d');
+
+                nc.putImageData(croppedImage, 0, 0);
+
+                tf.tidy(()=> {
+                  const tf_pixel = tf.fromPixels(c);
+                  const tf_img_batched = tf_pixel.expandDims(0);
+                  const tf_final_img_batched = tf_img_batched.toFloat().div(tf.scalar(127)).sub(tf.scalar(1));
+
+                  const predictedClass = tf.tidy(() => {
+                    const activation = mobilenet.predict(tf_final_img_batched);
+                    const predictions = model.predict(activation);
+                    const value = predictions.as1D().argMax().dataSync();
+                    console.log(value)
+
+                    let color = "#00ff00";
+
+                    if(value == 2) {
+                      color = "#ff0000";
+                    }
+
+
+                    drawLine(leftElbowX, noseY, rightElbowX, noseY, color);
+                    drawLine(rightElbowX, rightHipY, rightElbowX, noseY, color);
+                    drawLine(leftElbowX, leftHipY, rightElbowX, rightHipY, color);
+                    drawLine(leftElbowX, leftHipY, leftElbowX, noseY, color);
+                  });
+                });
+              }
+
+
+              // link.click();
             }
           }
           loading = false;
@@ -149,7 +163,7 @@ document.addEventListener('DOMContentLoaded', function(){
     	}
 
       //run at 30fps
-    },33);
+    },40);
 
 },false);
 
@@ -158,21 +172,23 @@ function draw(v,c,w,h) {
     context.drawImage(v,0,0,w,h); // draw video feed to canvas
 }
 
-function drawLine(x0, y0, x1, y1) {
+function drawLine(x0, y0, x1, y1, color) {
   context.beginPath();
   context.moveTo(x0,y0);
   context.lineTo(x1, y1);
+  context.lineWidth = 10;
+  context.strokeStyle = color;
   context.stroke();
 }
 
 //lines is a 2D array containing x and ys
-function drawLines(lines) {
+function drawLines(lines, color) {
 
   let x0 = lines[0][0];
   let y0 = lines[0][1];
 
   for(var i = 1; i < lines.length; i++) {
-    drawLine(x0, y0, lines[i][0], lines[i][1]);
+    drawLine(x0, y0, lines[i][0], lines[i][1], color);
     x0 = lines[i][0];
     y0 = lines[i][0];
   }
@@ -188,3 +204,25 @@ function drawRect(x0, y0, x1, y1) {
 function getDistance(x, y, x1, y1) {
   return Math.sqrt(Math.pow(x1 - x, 2) + Math.pow(y1 - y, 2));
 }
+
+async function loadModel() {
+  model = await tf.loadModel("http://localhost:9000/model.json");
+}
+
+//load mobile net from cdn
+async function loadMobilenet() {
+  const mobilenet = await tf.loadModel(
+      'https://storage.googleapis.com/tfjs-models/tfjs/mobilenet_v1_0.25_224/model.json');
+
+  // Return a model that outputs an internal activation.
+  const layer = mobilenet.getLayer('conv_pw_13_relu');
+  return tf.model({inputs: mobilenet.inputs, outputs: layer.output});
+};
+
+async function init() {
+  mobilenet = await loadMobilenet();
+  model = loadModel();
+  modelReady = true;
+}
+
+init();
